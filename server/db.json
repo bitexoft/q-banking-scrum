@@ -1,0 +1,115 @@
+{
+  "sprints": [
+    {
+      "id": "0",
+      "name": "Sprint 0: Preparación",
+      "weeks": "1-2",
+      "status": "active",
+      "stories": [
+        {
+          "id": "SPK-1",
+          "title": "Create Scrum management tool (React-ts)",
+          "epic": "Agency: management",
+          "sp": 3,
+          "priority": "P1",
+          "status": "in-progress",
+          "assignee": "Doctor-Kernel"
+        },
+        {
+          "id": "SPK-2",
+          "title": "Create Logo",
+          "epic": "Agency: branding",
+          "sp": 3,
+          "priority": "P0",
+          "status": "in-progress",
+          "assignee": "Doctor-Kernel"
+        }
+      ]
+    }
+  ],
+  "epics": [
+    {
+      "id": "1",
+      "name": "Consulting: Planning",
+      "iconName": "TrendingIcon",
+      "color": "bg-purple-500",
+      "total": 21
+    },
+    {
+      "id": "2",
+      "name": "Training: planning",
+      "iconName": "TrendingIcon",
+      "color": "bg-purple-500",
+      "total": 34
+    },
+    {
+      "id": "4",
+      "name": "Consulting: Monetization & Analitics",
+      "iconName": "DollarIcon",
+      "color": "bg-green-500",
+      "total": 21
+    },
+    {
+      "id": "5",
+      "name": "Training: Monetization & Analitics",
+      "iconName": "DollarIcon",
+      "color": "bg-green-500",
+      "total": 13
+    },
+    {
+      "id": "epic-1763751087040",
+      "name": "Training: implementation",
+      "iconName": "CalendarIcon",
+      "color": "bg-orange-500",
+      "total": 0
+    },
+    {
+      "id": "epic-1763752034446",
+      "name": "Consulting: implementation",
+      "iconName": "CalendarIcon",
+      "color": "bg-orange-500",
+      "total": 0
+    },
+    {
+      "id": "epic-1764246131381",
+      "name": "Agency: branding",
+      "iconName": "ZapIcon",
+      "color": "bg-blue-500",
+      "total": 3
+    },
+    {
+      "id": "epic-1764246303004",
+      "name": "Agency: management",
+      "iconName": "CircleIcon",
+      "color": "bg-pink-500",
+      "total": 0
+    }
+  ],
+  "assignees": [
+    {
+      "id": "1",
+      "name": "Cuchi"
+    },
+    {
+      "id": "2",
+      "name": "Doctor-Kernel"
+    },
+    {
+      "id": "3",
+      "name": "Bichón"
+    },
+    {
+      "id": "4",
+      "name": "Peichi"
+    },
+    {
+      "id": "5",
+      "name": "-"
+    }
+  ],
+  "login": {
+    "user": "bitexoft",
+    "password": "123456"
+  },
+  "lastStoryId": 3
+}
