@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { CircleIcon, PlayIcon, CheckIcon, TrendingIcon, ZapIcon, CalendarIcon, BlockedIcon } from './components/Icons';
+import { CircleIcon, PlayIcon, CheckIcon, TrendingIcon, ZapIcon, CalendarIcon, BlockedIcon, ChevronIcon } from './components/Icons';
 import { StatCard } from './components/StatCard';
 import { EpicCard } from './components/EpicCard';
 import { SprintSelector } from './components/SprintSelector';
@@ -7,6 +7,7 @@ import { EpicFilter } from './components/EpicFilter';
 import { StoryCard } from './components/StoryCard';
 import { StoryModal } from './components/StoryModal';
 import { EpicModal } from './components/EpicModal';
+import { SprintModal } from './components/SprintModal';
 import { Login } from './components/Login';
 import './App.css';
 import { FcProcess } from "react-icons/fc";
@@ -39,6 +40,7 @@ interface Sprint {
   name: string;
   weeks: string;
   stories: Story[];
+  status?: 'active' | 'planned' | 'completed';
 }
 
 interface ProjectData {
@@ -57,6 +59,8 @@ function App() {
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [editingEpic, setEditingEpic] = useState<Epic | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEpicsExpanded, setIsEpicsExpanded] = useState(false);
+  const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
 
   // Load data only when authenticated
   useEffect(() => {
@@ -309,6 +313,64 @@ function App() {
     }
   };
 
+  const handleActivateSprint = async (sprintId: string) => {
+    try {
+      // Deactivate all sprints and activate the target one
+      const updatedSprints = projectData.sprints.map(s => ({
+        ...s,
+        status: (s.id === sprintId ? 'active' : 'planned') as Sprint['status']
+      }));
+
+      // Optimistic update
+      setProjectData(prev => ({ ...prev, sprints: updatedSprints }));
+
+      // Persist to backend - We need to update all sprints
+      // In a real API we might have a single endpoint for this, 
+      // but with json-server we have to do it individually or update the whole collection if supported
+      await Promise.all(updatedSprints.map(sprint =>
+        fetch(`http://localhost:3001/sprints/${sprint.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: sprint.status })
+        })
+      ));
+    } catch (error) {
+      console.error('Error activating sprint:', error);
+      loadData();
+    }
+  };
+
+  const handleSaveSprint = async (sprintData: { name: string; weeks: string }) => {
+    try {
+      const newSprint: Sprint = {
+        id: `sprint-${Date.now()}`,
+        name: sprintData.name,
+        weeks: sprintData.weeks,
+        stories: [],
+        status: 'planned'
+      };
+
+      // Update state
+      setProjectData(prev => ({
+        ...prev,
+        sprints: [...prev.sprints, newSprint]
+      }));
+
+      // Select the new sprint
+      setSelectedSprint(projectData.sprints.length);
+
+      // Persist to backend
+      await fetch('http://localhost:3001/sprints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSprint)
+      });
+    } catch (error) {
+      console.error('Error saving sprint:', error);
+      loadData();
+    }
+  };
+
   const openCreateModal = () => {
     setEditingStory(null);
     setIsModalOpen(true);
@@ -393,27 +455,40 @@ function App() {
             </div>
           </div>
         </div>
+        {/* Subtle Progress Bar */}
+        <div className="w-full bg-black/40 h-1.5 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+            style={{ width: `${stats.totalSP > 0 ? (stats.completedSP / stats.totalSP) * 100 : 0}%` }}
+          />
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <StatCard title="To Do" value={stats.todo} icon={CircleIcon} iconColor="text-gray-400" borderColor="border-purple-500/20" />
+          <StatCard title="Blocked" value={stats.blocked} icon={BlockedIcon} iconColor="text-red-400" borderColor="border-red-500/20" />
           <StatCard title="In Progress" value={stats.inProgress} icon={PlayIcon} iconColor="text-blue-400" borderColor="border-blue-500/20" />
           <StatCard title="Completed" value={stats.done} icon={CheckIcon} iconColor="text-green-400" borderColor="border-green-500/20" />
-          <StatCard title="Blocked" value={stats.blocked} icon={BlockedIcon} iconColor="text-red-400" borderColor="border-red-500/20" />
           <StatCard title="Velocity" value="15-25 SP" icon={TrendingIcon} iconColor="text-purple-400" borderColor="border-purple-500/20" />
         </div>
 
         {/* Epics Overview */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-8 border border-purple-500/20">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
+          <div className="flex items-center justify-between mb-0">
+            <div
+              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => setIsEpicsExpanded(!isEpicsExpanded)}
+            >
               <div className="text-yellow-400">
                 <ZapIcon />
               </div>
-              Project Epics
-            </h2>
+              <h2 className="text-xl font-bold">Project Epics</h2>
+              <div className={`transition-transform duration-300 ${isEpicsExpanded ? 'rotate-180' : ''} text-purple-400`}>
+                <ChevronIcon />
+              </div>
+            </div>
             <button
               onClick={() => { setEditingEpic(null); setIsEpicModalOpen(true); }}
               className="px-3 py-1.5 bg-purple-600/20 text-purple-300 rounded-lg text-sm font-semibold hover:bg-purple-600/40 transition-colors border border-purple-500/30"
@@ -421,15 +496,20 @@ function App() {
               + Add Epic
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {epicsWithTotals.map(epic => (
-              <EpicCard
-                key={epic.id}
-                epic={epic}
-                onEdit={handleEditEpic}
-                onDelete={handleDeleteEpic}
-              />
-            ))}
+
+          <div className={`grid transition-all duration-300 ease-in-out ${isEpicsExpanded ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
+            <div className="overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {epicsWithTotals.map(epic => (
+                  <EpicCard
+                    key={epic.id}
+                    epic={epic}
+                    onEdit={handleEditEpic}
+                    onDelete={handleDeleteEpic}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -438,6 +518,7 @@ function App() {
           sprints={projectData.sprints}
           selectedSprint={selectedSprint}
           onSelect={setSelectedSprint}
+          onAddSprint={() => setIsSprintModalOpen(true)}
         />
 
         {/* Filter by Epic */}
@@ -453,13 +534,28 @@ function App() {
                   <CalendarIcon />
                 </div>
                 {currentSprint.name} - User Stories
+                {(currentSprint as Sprint).status === 'active' && (
+                  <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30 animate-pulse">
+                    ACTIVE
+                  </span>
+                )}
               </h2>
-              <button
-                onClick={openCreateModal}
-                className="px-3 py-1.5 bg-purple-600/20 text-purple-300 rounded-lg text-sm font-semibold hover:bg-purple-600/40 transition-colors border border-purple-500/30"
-              >
-                + Create Story
-              </button>
+              <div className="flex gap-2">
+                {(currentSprint as Sprint).status !== 'active' && currentSprint.id && (
+                  <button
+                    onClick={() => handleActivateSprint(currentSprint.id)}
+                    className="px-3 py-1.5 bg-green-600/20 text-green-300 rounded-lg text-sm font-semibold hover:bg-green-600/40 transition-colors border border-green-500/30"
+                  >
+                    Set as Active
+                  </button>
+                )}
+                <button
+                  onClick={openCreateModal}
+                  className="px-3 py-1.5 bg-purple-600/20 text-purple-300 rounded-lg text-sm font-semibold hover:bg-purple-600/40 transition-colors border border-purple-500/30"
+                >
+                  + Create Story
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -483,21 +579,7 @@ function App() {
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold">Overall Project Progress</span>
-            <span className="text-sm text-purple-400">
-              {stats.totalSP > 0 ? Math.round((stats.completedSP / stats.totalSP) * 100) : 0}%
-            </span>
-          </div>
-          <div className="w-full bg-black/30 rounded-full h-4 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-purple-500 to-pink-500 h-full transition-all duration-500 rounded-full"
-              style={{ width: `${stats.totalSP > 0 ? (stats.completedSP / stats.totalSP) * 100 : 0}%` }}
-            />
-          </div>
-        </div>
+
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-400 text-sm">
@@ -519,6 +601,12 @@ function App() {
           onClose={() => { setIsEpicModalOpen(false); setEditingEpic(null); }}
           onSave={handleSaveEpic}
           epic={editingEpic}
+        />
+
+        <SprintModal
+          isOpen={isSprintModalOpen}
+          onClose={() => setIsSprintModalOpen(false)}
+          onSave={handleSaveSprint}
         />
       </div>
     </div>

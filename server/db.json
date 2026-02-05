@@ -21,10 +21,18 @@
           "epic": "Agency: branding",
           "sp": 3,
           "priority": "P0",
-          "status": "in-progress",
-          "assignee": "Doctor-Kernel"
+          "status": "todo",
+          "assignee": "Doctor-Kernel",
+          "details": "Detalle de prueba.\nOtro detalle."
         }
       ]
+    },
+    {
+      "id": "sprint-1770323175836",
+      "name": "Sprint 1: Nuevo Presentador",
+      "weeks": "Feb 05 - Feb 14",
+      "stories": [],
+      "status": "planned"
     }
   ],
   "epics": [

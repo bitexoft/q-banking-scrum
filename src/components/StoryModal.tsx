@@ -18,6 +18,7 @@ interface Story {
     priority: string;
     epic: string;
     assignee?: string;
+    details?: string; // Manteniendo consistencia si se usaba description, pero el usuario pidió 'detalle'
 }
 
 interface StoryModalProps {
@@ -40,8 +41,11 @@ export const StoryModal: React.FC<StoryModalProps> = ({ isOpen, onClose, onSave,
         sp: 3,
         priority: 'P1',
         status: 'todo',
-        assignee: assignees.length > 0 ? assignees[0].name : ''
+        assignee: assignees.length > 0 ? assignees[0].name : '',
+        details: ''
     });
+
+    const [showDetails, setShowDetails] = useState(false);
 
     useEffect(() => {
         if (story) {
@@ -52,8 +56,10 @@ export const StoryModal: React.FC<StoryModalProps> = ({ isOpen, onClose, onSave,
                 sp: story.sp,
                 priority: story.priority,
                 status: story.status,
-                assignee: story.assignee || (assignees.length > 0 ? assignees[0].name : '')
+                assignee: story.assignee || (assignees.length > 0 ? assignees[0].name : ''),
+                details: story.details || ''
             });
+            setShowDetails(!!story.details);
         } else {
             // Reset form for new story (ID will be auto-generated)
             setFormData({
@@ -63,8 +69,10 @@ export const StoryModal: React.FC<StoryModalProps> = ({ isOpen, onClose, onSave,
                 sp: 3,
                 priority: 'P1',
                 status: 'todo',
-                assignee: assignees.length > 0 ? assignees[0].name : ''
+                assignee: assignees.length > 0 ? assignees[0].name : '',
+                details: ''
             });
+            setShowDetails(false);
         }
     }, [story, epics, assignees]);
 
@@ -157,6 +165,25 @@ export const StoryModal: React.FC<StoryModalProps> = ({ isOpen, onClose, onSave,
                                 <option key={s} value={s}>{s.replace('-', ' ')}</option>
                             ))}
                         </select>
+                    </div>
+
+                    <div className="mb-6">
+                        <button
+                            type="button"
+                            onClick={() => setShowDetails(!showDetails)}
+                            className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1"
+                        >
+                            {showDetails ? '− Hide Details' : '+ Add Details'}
+                        </button>
+
+                        {showDetails && (
+                            <textarea
+                                value={formData.details}
+                                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                                placeholder="Enter story details, acceptance criteria, etc..."
+                                className="w-full mt-2 px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white h-24 resize-none text-sm"
+                            />
+                        )}
                     </div>
 
                     <div className="flex gap-3">

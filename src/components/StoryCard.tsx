@@ -9,6 +9,7 @@ interface Story {
     priority: string;
     epic: string;
     assignee?: string;
+    details?: string;
 }
 
 interface Epic {
@@ -80,6 +81,7 @@ const getEpicColorWithTransparency = (color: string) => {
 };
 
 export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onEdit, onDelete, epics = [] }) => {
+    const [isExpanded, setIsExpanded] = React.useState(false);
     // Find the epic color
     const epic = epics.find(e => e.name === story.epic);
     const epicColorClass = epic ? getEpicColorWithTransparency(epic.color) : 'bg-white/5 text-gray-400';
@@ -142,6 +144,26 @@ export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onEdit, on
                             </span>
                         )}
                     </div>
+
+                    {story.details && (
+                        <div className="mt-4 border-t border-white/5 pt-3">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsExpanded(!isExpanded);
+                                }}
+                                className="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1"
+                            >
+                                {isExpanded ? '− Hide Details' : '+ Show Details'}
+                            </button>
+
+                            {isExpanded && (
+                                <div className="mt-2 text-sm text-gray-300 bg-black/20 p-3 rounded-lg border border-purple-500/10 whitespace-pre-wrap">
+                                    {story.details}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
