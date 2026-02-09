@@ -6,7 +6,6 @@ interface Story {
     title: string;
     status: 'todo' | 'in-progress' | 'done' | 'blocked';
     sp: number;
-    priority: string;
     epic: string;
     assignee?: string;
     details?: string;
@@ -22,7 +21,6 @@ interface Epic {
 
 interface StoryCardProps {
     story: Story;
-    onClick: (id: string) => void;
     onEdit: (story: Story) => void;
     onDelete: (id: string) => void;
     epics?: Epic[];
@@ -56,14 +54,7 @@ const getStatusBadge = (status: Story['status']) => {
     return styles[status] || styles.todo;
 };
 
-const getPriorityColor = (priority: string) => {
-    const colors: Record<string, string> = {
-        'P0': 'text-red-600 font-bold',
-        'P1': 'text-orange-500 font-semibold',
-        'P2': 'text-yellow-600'
-    };
-    return colors[priority] || 'text-gray-500';
-};
+
 
 // Convert Tailwind color class to transparent version
 const getEpicColorWithTransparency = (color: string) => {
@@ -80,7 +71,7 @@ const getEpicColorWithTransparency = (color: string) => {
     return colorMap[color] || 'bg-white/5 text-gray-400';
 };
 
-export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onEdit, onDelete, epics = [] }) => {
+export const StoryCard: React.FC<StoryCardProps> = ({ story, onEdit, onDelete, epics = [] }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     // Find the epic color
     const epic = epics.find(e => e.name === story.epic);
@@ -89,10 +80,7 @@ export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onEdit, on
     return (
         <div className="bg-black/30 rounded-lg p-4 border border-white/10 hover:border-purple-500/50 transition-all cursor-pointer group">
             <div className="flex items-start gap-4">
-                <div className={`mt-1 ${getStatusColor(story.status)}`} onClick={(e) => {
-                    e.stopPropagation();
-                    onClick(story.id);
-                }}>
+                <div className={`mt-1 ${getStatusColor(story.status)}`}>
                     {getStatusIcon(story.status)}
                 </div>
 
@@ -100,15 +88,12 @@ export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onEdit, on
                     <div className="flex items-start justify-between gap-4 mb-2">
                         <div>
                             <span className="text-purple-400 text-sm font-mono">{story.id}</span>
-                            <h3 className="font-semibold mt-1">{story.title}</h3>
+                            <h3 className="font-semibold text-sm mt-1">{story.title}</h3>
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadge(story.status)}`}>
                                 {story.status.replace('-', ' ').toUpperCase()}
-                            </span>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getPriorityColor(story.priority)}`}>
-                                {story.priority}
                             </span>
                             <button
                                 onClick={(e) => {

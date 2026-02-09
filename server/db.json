@@ -1,95 +1,96 @@
 {
   "sprints": [
     {
-      "id": "0",
-      "name": "Sprint 0: Preparación",
-      "weeks": "1-2",
-      "status": "active",
+      "id": "backlog",
+      "name": "Backlog",
+      "weeks": "",
+      "status": "planned",
       "stories": [
         {
-          "id": "SPK-1",
-          "title": "Create Scrum management tool (React-ts)",
-          "epic": "Agency: management",
-          "sp": 3,
-          "priority": "P1",
-          "status": "in-progress",
-          "assignee": "Doctor-Kernel"
-        },
-        {
-          "id": "SPK-2",
-          "title": "Create Logo",
-          "epic": "Agency: branding",
-          "sp": 3,
-          "priority": "P0",
+          "id": "QB-5",
+          "title": "Create&populate Submitter table",
+          "epic": "Managing Submitters",
+          "sp": 1,
           "status": "todo",
-          "assignee": "Doctor-Kernel",
-          "details": "Detalle de prueba.\nOtro detalle."
+          "assignee": "Bichón",
+          "details": "",
+          "sprintId": "backlog"
         }
       ]
     },
     {
-      "id": "sprint-1770323175836",
-      "name": "Sprint 1: Nuevo Presentador",
-      "weeks": "Feb 05 - Feb 14",
-      "stories": [],
-      "status": "planned"
+      "id": "0",
+      "name": "Sprint 1: Environment setup",
+      "weeks": "9 feb - 20 feb",
+      "status": "active",
+      "stories": [
+        {
+          "id": "QB-1",
+          "title": "Slack login",
+          "epic": "Onboarding",
+          "sp": 1,
+          "status": "done",
+          "assignee": "Bichón",
+          "details": ""
+        },
+        {
+          "id": "QB-2",
+          "title": "Crear repo quantum-banking",
+          "epic": "Onboarding",
+          "sp": 1,
+          "status": "todo",
+          "assignee": "Bichón",
+          "details": ""
+        },
+        {
+          "id": "QB-3",
+          "title": "Oracle ddbb with docker-compose",
+          "epic": "Onboarding",
+          "sp": 3,
+          "status": "in-progress",
+          "assignee": "Bichón",
+          "details": "docker-compose.yaml shared in Slack"
+        },
+        {
+          "id": "QB-4",
+          "title": "Download Sql-Developer",
+          "epic": "Onboarding",
+          "sp": 1,
+          "status": "todo",
+          "assignee": "Bichón",
+          "details": "Sql-developer: client to manage Oracle-ddbb",
+          "sprintId": "0"
+        }
+      ]
     }
   ],
   "epics": [
     {
       "id": "1",
-      "name": "Consulting: Planning",
-      "iconName": "TrendingIcon",
+      "name": "Onboarding",
+      "iconName": "BookIcon",
       "color": "bg-purple-500",
-      "total": 21
-    },
-    {
-      "id": "2",
-      "name": "Training: planning",
-      "iconName": "TrendingIcon",
-      "color": "bg-purple-500",
-      "total": 34
+      "total": 0
     },
     {
       "id": "4",
-      "name": "Consulting: Monetization & Analitics",
-      "iconName": "DollarIcon",
-      "color": "bg-green-500",
-      "total": 21
-    },
-    {
-      "id": "5",
-      "name": "Training: Monetization & Analitics",
-      "iconName": "DollarIcon",
-      "color": "bg-green-500",
-      "total": 13
-    },
-    {
-      "id": "epic-1763751087040",
-      "name": "Training: implementation",
-      "iconName": "CalendarIcon",
-      "color": "bg-orange-500",
-      "total": 0
-    },
-    {
-      "id": "epic-1763752034446",
-      "name": "Consulting: implementation",
-      "iconName": "CalendarIcon",
-      "color": "bg-orange-500",
-      "total": 0
-    },
-    {
-      "id": "epic-1764246131381",
-      "name": "Agency: branding",
-      "iconName": "ZapIcon",
+      "name": "Managing Submitters",
+      "iconName": "SmartphoneIcon",
       "color": "bg-blue-500",
-      "total": 3
+      "total": 0
     },
     {
-      "id": "epic-1764246303004",
-      "name": "Agency: management",
-      "iconName": "CircleIcon",
-      "color": "bg-pink-500",
+      "id": "epic-1770404330462",
+      "name": "Managing Creditors",
+      "iconName": "SmartphoneIcon",
+      "color": "bg-green-500",
+      "total": 0
+    },
+    {
+      "id": "epic-1770404536141",
+      "name": "Managing Direct-Debits",
+      "iconName": "SmartphoneIcon",
+      "color": "bg-yellow-500",
       "total": 0
     }
   ],
@@ -119,5 +120,5 @@
     "user": "bitexoft",
     "password": "123456"
   },
-  "lastStoryId": 3
+  "lastStoryId": 4
 }

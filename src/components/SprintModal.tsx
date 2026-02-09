@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface Sprint {
+    id: string;
+    name: string;
+    weeks: string;
+    status?: 'active' | 'planned' | 'completed';
+}
 
 interface SprintModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (sprintData: { name: string; weeks: string }) => void;
+    sprint?: Sprint | null;
 }
 
-export const SprintModal: React.FC<SprintModalProps> = ({ isOpen, onClose, onSave }) => {
+export const SprintModal: React.FC<SprintModalProps> = ({ isOpen, onClose, onSave, sprint }) => {
     const [name, setName] = useState('');
     const [weeks, setWeeks] = useState('');
+
+    // Populate fields when editing
+    useEffect(() => {
+        if (sprint) {
+            setName(sprint.name);
+            setWeeks(sprint.weeks);
+        } else {
+            setName('');
+            setWeeks('');
+        }
+    }, [sprint, isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,7 +42,9 @@ export const SprintModal: React.FC<SprintModalProps> = ({ isOpen, onClose, onSav
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-slate-800 rounded-xl p-6 max-w-sm w-full border border-purple-500/30">
-                <h3 className="text-xl font-bold mb-4 text-purple-400">Create New Sprint</h3>
+                <h3 className="text-xl font-bold mb-4 text-purple-400">
+                    {sprint ? 'Edit Sprint' : 'Create New Sprint'}
+                </h3>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-2 text-gray-300">Sprint Name</label>
@@ -52,7 +73,7 @@ export const SprintModal: React.FC<SprintModalProps> = ({ isOpen, onClose, onSav
                             type="submit"
                             className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
                         >
-                            Create Sprint
+                            {sprint ? 'Save Changes' : 'Create Sprint'}
                         </button>
                         <button
                             type="button"
