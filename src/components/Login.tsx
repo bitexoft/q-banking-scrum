@@ -17,7 +17,7 @@ export const Login = ({ onLogin }: LoginProps) => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3001/login');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/login`);
             const credentials = await response.json();
 
             if (username === credentials.user && password === credentials.password) {
@@ -98,7 +98,7 @@ export const Login = ({ onLogin }: LoginProps) => {
 
                 {/* Footer hint */}
                 <div className="mt-6 text-center text-xs text-gray-400">
-                    <p>Default credentials: bitexoft / 123456</p>
+                    <p>Default credentials: btx / zenbakiak</p>
                 </div>
             </div>
         </div>

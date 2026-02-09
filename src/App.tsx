@@ -79,19 +79,19 @@ function App() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/sprints');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/sprints`);
       const sprints = await response.json();
 
-      const epicsResponse = await fetch('http://localhost:3001/epics');
+      const epicsResponse = await fetch(`${import.meta.env.VITE_API_URL}/epics`);
       const epics = await epicsResponse.json();
 
-      const assigneesResponse = await fetch('http://localhost:3001/assignees');
+      const assigneesResponse = await fetch(`${import.meta.env.VITE_API_URL}/assignees`);
       const assignees = await assigneesResponse.json();
 
       setProjectData({ sprints, epics, assignees });
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Error loading data. Make sure json-server is running on port 3001');
+      alert('Error loading data. Make sure the API server is running.');
     } finally {
       setLoading(false);
     }
@@ -187,7 +187,7 @@ function App() {
 
     // Persist to backend
     try {
-      await fetch(`http://localhost:3001/sprints/${sourceSprint.id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/sprints/${sourceSprint.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stories: updatedStories })
@@ -223,7 +223,7 @@ function App() {
           }));
 
           // Persist to backend
-          await fetch(`http://localhost:3001/sprints/${sourceSprint.id}`, {
+          await fetch(`${import.meta.env.VITE_API_URL}/sprints/${sourceSprint.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ stories: updatedStories })
@@ -253,13 +253,13 @@ function App() {
           }));
 
           // Persist to backend (both sprints sequentially to avoid json-server write lock issues)
-          await fetch(`http://localhost:3001/sprints/${sourceSprint.id}`, {
+          await fetch(`${import.meta.env.VITE_API_URL}/sprints/${sourceSprint.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ stories: updatedSourceStories })
           });
 
-          await fetch(`http://localhost:3001/sprints/${targetSprintId}`, {
+          await fetch(`${import.meta.env.VITE_API_URL}/sprints/${targetSprintId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ stories: updatedTargetStories })
@@ -267,8 +267,9 @@ function App() {
         }
       } else {
         // Create new
-        const counterResponse = await fetch('http://localhost:3001/lastStoryId');
-        const currentId = await counterResponse.json();
+        const counterResponse = await fetch(`${import.meta.env.VITE_API_URL}/settings`);
+        const settings = await counterResponse.json();
+        const currentId = settings.lastStoryId;
         const newId = currentId + 1;
 
         const newStory = {
@@ -282,14 +283,14 @@ function App() {
         const updatedTargetStories = [...(targetSprint.stories || []), newStory];
 
         // Persist story to backend
-        await fetch(`http://localhost:3001/sprints/${targetSprintId}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/sprints/${targetSprintId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ stories: updatedTargetStories })
         });
 
         // Update counter
-        await fetch('http://localhost:3001/db', {
+        await fetch(`${import.meta.env.VITE_API_URL}/settings`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lastStoryId: newId })
@@ -324,7 +325,7 @@ function App() {
           epics: prev.epics.map(e => e.id === editingEpic.id ? newEpic : e)
         }));
 
-        await fetch(`http://localhost:3001/epics/${editingEpic.id}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/epics/${editingEpic.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newEpic)
@@ -341,7 +342,7 @@ function App() {
           epics: [...prev.epics, newEpic]
         }));
 
-        await fetch('http://localhost:3001/epics', {
+        await fetch(`${import.meta.env.VITE_API_URL}/epics`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newEpic)
@@ -383,7 +384,7 @@ function App() {
         epics: prev.epics.filter(e => e.id !== epic.id)
       }));
 
-      await fetch(`http://localhost:3001/epics/${epic.id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/epics/${epic.id}`, {
         method: 'DELETE'
       });
     } catch (error) {
@@ -407,7 +408,7 @@ function App() {
       // In a real API we might have a single endpoint for this, 
       // but with json-server we have to do it individually or update the whole collection if supported
       await Promise.all(updatedSprints.map(sprint =>
-        fetch(`http://localhost:3001/sprints/${sprint.id}`, {
+        fetch(`${import.meta.env.VITE_API_URL}/sprints/${sprint.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: sprint.status })
@@ -436,7 +437,7 @@ function App() {
         }));
 
         // Persist to backend
-        await fetch(`http://localhost:3001/sprints/${editingSprint.id}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/sprints/${editingSprint.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: sprintData.name, weeks: sprintData.weeks })
@@ -461,7 +462,7 @@ function App() {
         setSelectedSprint(projectData.sprints.length);
 
         // Persist to backend
-        await fetch('http://localhost:3001/sprints', {
+        await fetch(`${import.meta.env.VITE_API_URL}/sprints`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newSprint)
@@ -505,7 +506,7 @@ function App() {
       }
 
       // Persist to backend
-      await fetch(`http://localhost:3001/sprints/${sprint.id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/sprints/${sprint.id}`, {
         method: 'DELETE'
       });
     } catch (error) {
@@ -558,7 +559,7 @@ function App() {
       }));
 
       // Persist to backend
-      await fetch(`http://localhost:3001/sprints/${ownerSprint.id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/sprints/${ownerSprint.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stories: updatedStories })

@@ -120,5 +120,7 @@
     "user": "bitexoft",
     "password": "123456"
   },
-  "lastStoryId": 4
+  "settings": {
+    "lastStoryId": 4
+  }
 }
