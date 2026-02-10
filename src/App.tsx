@@ -155,21 +155,23 @@ function App() {
     if (!over || currentSprint.id === 'backlog') return;
 
     const storyId = active.id as string;
-    const columnId = over.id as string;
+    const overId = over.id as string;
 
-    // Map column IDs to status values
-    let newStatus: Story['status'];
-    if (columnId === 'todo') {
-      newStatus = 'todo';
-    } else if (columnId === 'in-progress') {
-      newStatus = 'in-progress';
-    } else if (columnId === 'done') {
-      newStatus = 'done';
-    } else if (columnId === 'blocked') {
-      newStatus = 'blocked';
+    // Resolve target status: it could be a column ID ('todo', 'in-progress', etc.)
+    // or it could be another story's ID if we dropped it directly on a card.
+    let newStatus: Story['status'] | null = null;
+
+    if (['todo', 'in-progress', 'done', 'blocked'].includes(overId)) {
+      newStatus = overId as Story['status'];
     } else {
-      return; // Invalid drop target
+      // If we dropped on another story, find that story's current status
+      const overStory = currentSprint.stories.find(s => s.id === overId);
+      if (overStory) {
+        newStatus = overStory.status;
+      }
     }
+
+    if (!newStatus) return; // Invalid drop target
 
     const story = projectData.sprints
       .flatMap(s => s.stories)
