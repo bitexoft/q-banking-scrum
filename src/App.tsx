@@ -265,12 +265,18 @@ function App() {
             body: JSON.stringify({ stories: updatedTargetStories })
           });
         }
-      } else {
         // Create new
-        const counterResponse = await fetch(`${import.meta.env.VITE_API_URL}/settings`);
-        const settings = await counterResponse.json();
-        const currentId = settings.lastStoryId;
-        const newId = currentId + 1;
+        // Robustly determine the next story ID by scanning all existing stories
+        const allExistingStories = projectData.sprints.flatMap(s => s.stories || []);
+        const storyIds = allExistingStories
+          .map(s => {
+            const match = s.id.match(/QB-(\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+          })
+          .filter(id => !isNaN(id));
+
+        const maxId = storyIds.length > 0 ? Math.max(...storyIds) : 0;
+        const newId = maxId + 1;
 
         const newStory = {
           ...storyData,
