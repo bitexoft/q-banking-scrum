@@ -265,6 +265,7 @@ function App() {
             body: JSON.stringify({ stories: updatedTargetStories })
           });
         }
+      } else {
         // Create new
         // Robustly determine the next story ID by scanning all existing stories
         const allExistingStories = projectData.sprints.flatMap(s => s.stories || []);
