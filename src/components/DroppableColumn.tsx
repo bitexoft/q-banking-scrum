@@ -26,7 +26,7 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-black/20 rounded-lg p-4 border ${borderColor} transition-all duration-200 ${isOver ? 'ring-2 ring-purple-500 bg-purple-500/15 border-purple-500/50 scale-[1.01] shadow-[0_0_20px_rgba(168,85,247,0.15)]' : ''
+            className={`bg-black/20 rounded-lg p-4 border ${borderColor} transition-all duration-300 min-h-[500px] flex flex-col ${isOver ? 'ring-2 ring-purple-500 bg-purple-500/20 border-purple-500/50 scale-[1.02] shadow-[0_0_30px_rgba(168,85,247,0.25)]' : ''
                 }`}
         >
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -37,8 +37,12 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
                 </span>
             </h3>
             <SortableContext items={items} strategy={verticalListSortingStrategy}>
-                <div className="space-y-3">
+                <div className="space-y-3 flex-1">
                     {children}
+                    {/* Add an empty div that expands to fill space, making the entire column droppable */}
+                    {items.length === 0 && (
+                        <div className="flex-1 min-h-[100px]" />
+                    )}
                 </div>
             </SortableContext>
         </div>
