@@ -1,20 +1,45 @@
 {
   "sprints": [
     {
+      "id": "discovery",
+      "name": "Discovery",
+      "weeks": "",
+      "status": "planned",
+      "stories": [
+        {
+          "id": "QB-9",
+          "title": "Select one SUBMITTER",
+          "epic": "Managing Submitters",
+          "sp": 1,
+          "status": "todo",
+          "assignee": "Doctor-Kernel",
+          "details": "The FE calls BE-service to retrieve all submitters to populate the combobox.\nThe user selects one Submitter, and the info is displayed in the screen."
+        }
+      ]
+    },
+    {
       "id": "backlog",
       "name": "Backlog",
       "weeks": "",
       "status": "planned",
       "stories": [
         {
-          "id": "QB-5",
-          "title": "Create&populate Submitter table",
+          "id": "QB-10",
+          "title": "Design API-baas SUBMITTERS",
           "epic": "Managing Submitters",
-          "sp": 1,
+          "sp": 5,
           "status": "todo",
           "assignee": "Bichón",
-          "details": "",
-          "sprintId": "backlog"
+          "details": ""
+        },
+        {
+          "id": "QB-12",
+          "title": "Design Architecture diagram",
+          "epic": "Onboarding",
+          "sp": 1,
+          "status": "todo",
+          "assignee": "Doctor-Kernel",
+          "details": "FE -> APIs -> MS-1 -> MS-2 -> DDBB"
         }
       ]
     },
@@ -38,7 +63,7 @@
           "title": "Crear repo quantum-banking",
           "epic": "Onboarding",
           "sp": 1,
-          "status": "todo",
+          "status": "done",
           "assignee": "Bichón",
           "details": ""
         },
@@ -47,7 +72,7 @@
           "title": "Oracle ddbb with docker-compose",
           "epic": "Onboarding",
           "sp": 3,
-          "status": "in-progress",
+          "status": "done",
           "assignee": "Bichón",
           "details": "docker-compose.yaml shared in Slack"
         },
@@ -56,10 +81,27 @@
           "title": "Download Sql-Developer",
           "epic": "Onboarding",
           "sp": 1,
+          "status": "done",
+          "assignee": "Bichón",
+          "details": "Sql-developer: client to manage Oracle-ddbb"
+        },
+        {
+          "id": "QB-5",
+          "title": "Create&populate Submitter table",
+          "epic": "Managing Submitters",
+          "sp": 1,
           "status": "todo",
           "assignee": "Bichón",
-          "details": "Sql-developer: client to manage Oracle-ddbb",
-          "sprintId": "0"
+          "details": ""
+        },
+        {
+          "id": "QB-11",
+          "title": "Install Postman",
+          "epic": "Onboarding",
+          "sp": 1,
+          "status": "in-progress",
+          "assignee": "Bichón",
+          "details": "Tool to make HTTP calls for DEBUGGING."
         }
       ]
     }
@@ -73,7 +115,7 @@
       "total": 0
     },
     {
-      "id": "4",
+      "id": "Epic-4",
       "name": "Managing Submitters",
       "iconName": "SmartphoneIcon",
       "color": "bg-blue-500",
@@ -121,6 +163,6 @@
     "password": "123456"
   },
   "settings": {
-    "lastStoryId": 5
+    "lastStoryId": 12
   }
 }

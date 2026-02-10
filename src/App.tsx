@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+import { DndContext, pointerWithin, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { CircleIcon, PlayIcon, CheckIcon, TrendingIcon, ZapIcon, CalendarIcon, BlockedIcon, ChevronIcon } from './components/Icons';
 import { StatCard } from './components/StatCard';
 import { EpicCard } from './components/EpicCard';
@@ -109,13 +109,13 @@ function App() {
 
   // Calculate stats
   const stats = useMemo(() => {
-    const allStories = projectData.sprints.flatMap(s => s.stories || []);
-    const done = allStories.filter(s => s.status === 'done').length;
-    const inProgress = allStories.filter(s => s.status === 'in-progress').length;
-    const todo = allStories.filter(s => s.status === 'todo').length;
-    const blocked = allStories.filter(s => s.status === 'blocked').length;
-    const totalSP = allStories.reduce((sum, s) => sum + s.sp, 0);
-    const completedSP = allStories.filter(s => s.status === 'done').reduce((sum, s) => sum + s.sp, 0);
+    const allStories = projectData.sprints.flatMap((s: Sprint) => s.stories || []);
+    const done = allStories.filter((s: Story) => s.status === 'done').length;
+    const inProgress = allStories.filter((s: Story) => s.status === 'in-progress').length;
+    const todo = allStories.filter((s: Story) => s.status === 'todo').length;
+    const blocked = allStories.filter((s: Story) => s.status === 'blocked').length;
+    const totalSP = allStories.reduce((sum: number, s: Story) => sum + s.sp, 0);
+    const completedSP = allStories.filter((s: Story) => s.status === 'done').reduce((sum: number, s: Story) => sum + s.sp, 0);
 
     return { done, inProgress, todo, blocked, totalSP, completedSP, total: allStories.length };
   }, [projectData]);
@@ -123,20 +123,20 @@ function App() {
   // Calculate stats for the current sprint
   const currentSprintStats = useMemo(() => {
     if (!currentSprint || !currentSprint.stories) return { total: 0, completed: 0 };
-    const total = currentSprint.stories.reduce((sum, s) => sum + s.sp, 0);
+    const total = currentSprint.stories.reduce((sum: number, s: Story) => sum + s.sp, 0);
     const completed = currentSprint.stories
-      .filter(s => s.status === 'done')
-      .reduce((sum, s) => sum + s.sp, 0);
+      .filter((s: Story) => s.status === 'done')
+      .reduce((sum: number, s: Story) => sum + s.sp, 0);
     return { total, completed };
   }, [currentSprint]);
 
   // Calculate epic totals dynamically from stories
   const epicsWithTotals = useMemo(() => {
-    const allStories = projectData.sprints.flatMap(s => s.stories || []);
+    const allStories = projectData.sprints.flatMap((s: Sprint) => s.stories || []);
 
-    return projectData.epics.map(epic => {
-      const epicStories = allStories.filter(story => story.epic === epic.name);
-      const total = epicStories.reduce((sum, story) => sum + story.sp, 0);
+    return projectData.epics.map((epic: Epic) => {
+      const epicStories = allStories.filter((story: Story) => story.epic === epic.name);
+      const total = epicStories.reduce((sum: number, story: Story) => sum + story.sp, 0);
 
       return {
         ...epic,
@@ -150,8 +150,8 @@ function App() {
     return currentSprint.stories;
   }, [currentSprint]);
 
-  const handleDragStart = (event: any) => {
-    setActiveId(event.active.id);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -171,7 +171,7 @@ function App() {
       newStatus = overId as Story['status'];
     } else {
       // If we dropped on another story, find that story's current status
-      const overStory = currentSprint.stories.find(s => s.id === overId);
+      const overStory = currentSprint.stories.find((s: Story) => s.id === overId);
       if (overStory) {
         newStatus = overStory.status;
       }
@@ -180,22 +180,22 @@ function App() {
     if (!newStatus) return; // Invalid drop target
 
     const story = projectData.sprints
-      .flatMap(s => s.stories)
-      .find(s => s.id === storyId);
+      .flatMap((s: Sprint) => s.stories)
+      .find((s: Story) => s.id === storyId);
 
     if (!story || story.status === newStatus) return;
 
-    const sourceSprint = projectData.sprints.find(s => s.stories.some(st => st.id === storyId));
+    const sourceSprint = projectData.sprints.find((s: Sprint) => s.stories.some((st: Story) => st.id === storyId));
     if (!sourceSprint) return;
 
     // Optimistic update
-    const updatedStories = sourceSprint.stories.map(s =>
+    const updatedStories = sourceSprint.stories.map((s: Story) =>
       s.id === storyId ? { ...s, status: newStatus } : s
     );
 
-    setProjectData(prev => ({
+    setProjectData((prev: ProjectData) => ({
       ...prev,
-      sprints: prev.sprints.map(s =>
+      sprints: prev.sprints.map((s: Sprint) =>
         s.id === sourceSprint.id ? { ...s, stories: updatedStories } : s
       )
     }));
@@ -225,14 +225,14 @@ function App() {
 
         if (sourceSprint.id === targetSprintId) {
           // Edit same sprint
-          const updatedStories = sourceSprint.stories.map(s =>
-            s.id === editingStory.id ? { ...s, ...storyData } : s
+          const updatedStories = sourceSprint.stories.map((s: Story) =>
+            s.id === editingStory.id ? { ...s, ...storyData } as Story : s
           );
 
           // Optimistic update
-          setProjectData(prev => ({
+          setProjectData((prev: ProjectData) => ({
             ...prev,
-            sprints: prev.sprints.map(s =>
+            sprints: prev.sprints.map((s: Sprint) =>
               s.id === sourceSprint.id ? { ...s, stories: updatedStories } : s
             )
           }));
@@ -245,8 +245,8 @@ function App() {
           });
         } else {
           // Move between sprints
-          const updatedSourceStories = sourceSprint.stories.filter(s => s.id !== editingStory.id);
-          const targetSprint = projectData.sprints.find(s => s.id === targetSprintId);
+          const updatedSourceStories = sourceSprint.stories.filter((s: Story) => s.id !== editingStory.id);
+          const targetSprint = projectData.sprints.find((s: Sprint) => s.id === targetSprintId);
 
           if (!targetSprint) return;
 
@@ -254,13 +254,13 @@ function App() {
             ...editingStory,
             ...storyData,
             status: targetSprintId === 'backlog' ? 'todo' : (storyData.status || (editingStory as Story).status)
-          };
+          } as Story;
           const updatedTargetStories = [...(targetSprint.stories || []), movedStory];
 
           // Optimistic update
-          setProjectData(prev => ({
+          setProjectData((prev: ProjectData) => ({
             ...prev,
-            sprints: prev.sprints.map(s => {
+            sprints: prev.sprints.map((s: Sprint) => {
               if (s.id === sourceSprint.id) return { ...s, stories: updatedSourceStories };
               if (s.id === targetSprintId) return { ...s, stories: updatedTargetStories };
               return s;
@@ -283,13 +283,13 @@ function App() {
       } else {
         // Create new
         // Robustly determine the next story ID by scanning all existing stories
-        const allExistingStories = projectData.sprints.flatMap(s => s.stories || []);
+        const allExistingStories = projectData.sprints.flatMap((s: Sprint) => s.stories || []);
         const storyIds = allExistingStories
-          .map(s => {
+          .map((s: Story) => {
             const match = s.id.match(/QB-(\d+)/);
             return match ? parseInt(match[1], 10) : 0;
           })
-          .filter(id => !isNaN(id));
+          .filter((id: number) => !isNaN(id));
 
         const maxId = storyIds.length > 0 ? Math.max(...storyIds) : 0;
         const newId = maxId + 1;
@@ -299,7 +299,7 @@ function App() {
           id: `QB-${newId}`
         } as Story;
 
-        const targetSprint = projectData.sprints.find(s => s.id === targetSprintId);
+        const targetSprint = projectData.sprints.find((s: Sprint) => s.id === targetSprintId);
         if (!targetSprint) return;
 
         const updatedTargetStories = [...(targetSprint.stories || []), newStory];
@@ -319,9 +319,9 @@ function App() {
         });
 
         // Optimistic update
-        setProjectData(prev => ({
+        setProjectData((prev: ProjectData) => ({
           ...prev,
-          sprints: prev.sprints.map(s =>
+          sprints: prev.sprints.map((s: Sprint) =>
             s.id === targetSprintId ? { ...s, stories: updatedTargetStories } : s
           )
         }));
@@ -342,9 +342,9 @@ function App() {
         // Update existing
         newEpic = { ...editingEpic, ...epicData } as Epic;
 
-        setProjectData(prev => ({
+        setProjectData((prev: ProjectData) => ({
           ...prev,
-          epics: prev.epics.map(e => e.id === editingEpic.id ? newEpic : e)
+          epics: prev.epics.map((e: Epic) => e.id === editingEpic.id ? newEpic : e)
         }));
 
         await fetch(`${import.meta.env.VITE_API_URL}/epics/${editingEpic.id}`, {
@@ -359,7 +359,7 @@ function App() {
           ...epicData
         } as Epic;
 
-        setProjectData(prev => ({
+        setProjectData((prev: ProjectData) => ({
           ...prev,
           epics: [...prev.epics, newEpic]
         }));
@@ -386,8 +386,8 @@ function App() {
 
   const handleDeleteEpic = async (epic: Epic) => {
     // Check if used
-    const isUsed = projectData.sprints.some(sprint =>
-      sprint.stories && sprint.stories.some(story => story.epic === epic.id)
+    const isUsed = projectData.sprints.some((sprint: Sprint) =>
+      sprint.stories && sprint.stories.some((story: Story) => story.epic === epic.id)
     );
 
     if (isUsed) {
@@ -401,9 +401,9 @@ function App() {
 
     try {
       // Optimistic update
-      setProjectData(prev => ({
+      setProjectData((prev: ProjectData) => ({
         ...prev,
-        epics: prev.epics.filter(e => e.id !== epic.id)
+        epics: prev.epics.filter((e: Epic) => e.id !== epic.id)
       }));
 
       await fetch(`${import.meta.env.VITE_API_URL}/epics/${epic.id}`, {
@@ -418,18 +418,18 @@ function App() {
   const handleActivateSprint = async (sprintId: string) => {
     try {
       // Deactivate all sprints and activate the target one
-      const updatedSprints = projectData.sprints.map(s => ({
+      const updatedSprints = projectData.sprints.map((s: Sprint) => ({
         ...s,
         status: (s.id === sprintId ? 'active' : 'planned') as Sprint['status']
       }));
 
       // Optimistic update
-      setProjectData(prev => ({ ...prev, sprints: updatedSprints }));
+      setProjectData((prev: ProjectData) => ({ ...prev, sprints: updatedSprints }));
 
       // Persist to backend - We need to update all sprints
       // In a real API we might have a single endpoint for this, 
       // but with json-server we have to do it individually or update the whole collection if supported
-      await Promise.all(updatedSprints.map(sprint =>
+      await Promise.all(updatedSprints.map((sprint: Sprint) =>
         fetch(`${import.meta.env.VITE_API_URL}/sprints/${sprint.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -453,9 +453,9 @@ function App() {
         };
 
         // Update state
-        setProjectData(prev => ({
+        setProjectData((prev: ProjectData) => ({
           ...prev,
-          sprints: prev.sprints.map(s => s.id === editingSprint.id ? updatedSprint : s)
+          sprints: prev.sprints.map((s: Sprint) => s.id === editingSprint.id ? updatedSprint : s)
         }));
 
         // Persist to backend
@@ -475,7 +475,7 @@ function App() {
         };
 
         // Update state
-        setProjectData(prev => ({
+        setProjectData((prev: ProjectData) => ({
           ...prev,
           sprints: [...prev.sprints, newSprint]
         }));
@@ -516,9 +516,9 @@ function App() {
 
     try {
       // Optimistic update
-      setProjectData(prev => ({
+      setProjectData((prev: ProjectData) => ({
         ...prev,
-        sprints: prev.sprints.filter(s => s.id !== sprint.id)
+        sprints: prev.sprints.filter((s: Sprint) => s.id !== sprint.id)
       }));
 
       // Adjust selected index if necessary
@@ -559,7 +559,7 @@ function App() {
 
   const handleDeleteStory = async (storyId: string) => {
     // Find owner sprint dynamically
-    const ownerSprint = projectData.sprints.find(s => s.stories.some(st => st.id === storyId));
+    const ownerSprint = projectData.sprints.find((s: Sprint) => s.stories.some((st: Story) => st.id === storyId));
     if (!ownerSprint) return;
 
     const story = ownerSprint.stories.find(s => s.id === storyId);
@@ -573,9 +573,9 @@ function App() {
       // Optimistic update
       const updatedStories = ownerSprint.stories.filter(s => s.id !== storyId);
 
-      setProjectData(prev => ({
+      setProjectData((prev: ProjectData) => ({
         ...prev,
-        sprints: prev.sprints.map(s =>
+        sprints: prev.sprints.map((s: Sprint) =>
           s.id === ownerSprint.id ? { ...s, stories: updatedStories } : s
         )
       }));
@@ -712,7 +712,7 @@ function App() {
               sensors={sensors}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
-              collisionDetection={closestCorners}
+              collisionDetection={pointerWithin}
             >
               {['backlog', 'discovery'].includes(currentSprint.id) ? (
                 <div className="max-w-2xl mx-auto">
@@ -723,17 +723,17 @@ function App() {
                       icon={<CircleIcon />}
                       count={filteredStories.length}
                       borderColor="border-purple-500/30"
-                      items={filteredStories.map(s => s.id)}
+                      items={filteredStories.map((s: Story) => s.id)}
                     >
                       {filteredStories.length === 0 ? (
                         <div className="text-center py-8 text-gray-500 text-sm">
                           {currentSprint.id === 'discovery' ? 'No items in discovery' : 'No stories in backlog'}
                         </div>
                       ) : (
-                        filteredStories.map(story => (
+                        filteredStories.map((story: Story) => (
                           <DraggableStoryCard
                             key={story.id}
-                            story={currentSprint.id === 'discovery' ? story : { ...story, status: 'todo' }}
+                            story={currentSprint.id === 'discovery' ? story : { ...story, status: 'todo' } as Story}
                             epics={projectData.epics}
                             onEdit={openEditModal}
                             onDelete={handleDeleteStory}
@@ -750,18 +750,18 @@ function App() {
                     id="todo"
                     title="To Do"
                     icon={<CircleIcon />}
-                    count={filteredStories.filter(s => s.status === 'todo').length}
+                    count={filteredStories.filter((s: Story) => s.status === 'todo').length}
                     borderColor="border-purple-500/20"
-                    items={filteredStories.filter(s => s.status === 'todo').map(s => s.id)}
+                    items={filteredStories.filter((s: Story) => s.status === 'todo').map((s: Story) => s.id)}
                   >
-                    {filteredStories.filter(s => s.status === 'todo').length === 0 ? (
+                    {filteredStories.filter((s: Story) => s.status === 'todo').length === 0 ? (
                       <div className="text-center py-8 text-gray-500 text-sm">
                         No stories
                       </div>
                     ) : (
                       filteredStories
-                        .filter(s => s.status === 'todo')
-                        .map(story => (
+                        .filter((s: Story) => s.status === 'todo')
+                        .map((story: Story) => (
                           <DraggableStoryCard
                             key={story.id}
                             story={story}
@@ -778,18 +778,18 @@ function App() {
                     id="in-progress"
                     title="In Progress"
                     icon={<PlayIcon />}
-                    count={filteredStories.filter(s => s.status === 'in-progress' || s.status === 'blocked').length}
+                    count={filteredStories.filter((s: Story) => s.status === 'in-progress' || s.status === 'blocked').length}
                     borderColor="border-blue-500/20"
-                    items={filteredStories.filter(s => s.status === 'in-progress' || s.status === 'blocked').map(s => s.id)}
+                    items={filteredStories.filter((s: Story) => s.status === 'in-progress' || s.status === 'blocked').map((s: Story) => s.id)}
                   >
-                    {filteredStories.filter(s => s.status === 'in-progress' || s.status === 'blocked').length === 0 ? (
+                    {filteredStories.filter((s: Story) => s.status === 'in-progress' || s.status === 'blocked').length === 0 ? (
                       <div className="text-center py-8 text-gray-500 text-sm">
                         No stories
                       </div>
                     ) : (
                       filteredStories
-                        .filter(s => s.status === 'in-progress' || s.status === 'blocked')
-                        .map(story => (
+                        .filter((s: Story) => s.status === 'in-progress' || s.status === 'blocked')
+                        .map((story: Story) => (
                           <DraggableStoryCard
                             key={story.id}
                             story={story}
@@ -807,18 +807,18 @@ function App() {
                     id="done"
                     title="Completed"
                     icon={<CheckIcon />}
-                    count={filteredStories.filter(s => s.status === 'done').length}
+                    count={filteredStories.filter((s: Story) => s.status === 'done').length}
                     borderColor="border-green-500/20"
-                    items={filteredStories.filter(s => s.status === 'done').map(s => s.id)}
+                    items={filteredStories.filter((s: Story) => s.status === 'done').map((s: Story) => s.id)}
                   >
-                    {filteredStories.filter(s => s.status === 'done').length === 0 ? (
+                    {filteredStories.filter((s: Story) => s.status === 'done').length === 0 ? (
                       <div className="text-center py-8 text-gray-500 text-sm">
                         No stories
                       </div>
                     ) : (
                       filteredStories
-                        .filter(s => s.status === 'done')
-                        .map(story => (
+                        .filter((s: Story) => s.status === 'done')
+                        .map((story: Story) => (
                           <DraggableStoryCard
                             key={story.id}
                             story={story}
@@ -837,8 +837,8 @@ function App() {
                   <div className="shadow-2xl opacity-90 scale-105 transition-transform">
                     {(() => {
                       const activeStory = projectData.sprints
-                        .flatMap(s => s.stories)
-                        .find(s => s.id === activeId);
+                        .flatMap((s: Sprint) => s.stories)
+                        .find((s: Story) => s.id === activeId);
                       return activeStory ? (
                         <div className="w-[350px]">
                           <StoryCard
@@ -883,7 +883,7 @@ function App() {
           <div className={`grid transition-all duration-300 ease-in-out ${isEpicsExpanded ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
             <div className="overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {epicsWithTotals.map(epic => (
+                {epicsWithTotals.map((epic: Epic) => (
                   <EpicCard
                     key={epic.id}
                     epic={epic}
@@ -910,8 +910,8 @@ function App() {
           epics={projectData.epics}
           assignees={projectData.assignees}
           sprints={projectData.sprints}
-          activeSprintId={projectData.sprints.find(s => s.status === 'active')?.id || currentSprint.id}
-          currentSprintId={editingStory ? projectData.sprints.find(s => s.stories.some(st => st.id === editingStory.id))?.id : undefined}
+          activeSprintId={projectData.sprints.find((s: Sprint) => s.status === 'active')?.id || currentSprint.id}
+          currentSprintId={editingStory ? projectData.sprints.find((s: Sprint) => s.stories.some((st: Story) => st.id === editingStory.id))?.id : undefined}
         />
 
         <EpicModal

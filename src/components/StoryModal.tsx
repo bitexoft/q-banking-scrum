@@ -64,10 +64,8 @@ export const StoryModal: React.FC<StoryModalProps> = ({
     });
 
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-        main: true,
-        planning: true,
-        assignment: true,
-        details: true
+        characteristics: true,
+        details: false
     });
 
     useEffect(() => {
@@ -82,15 +80,13 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                 details: story.details || '',
                 sprintId: currentSprintId || activeSprintId || ''
             });
-            // Editing: collapse all except details
+            // Edit mode: details expanded, others collapsed
             setExpandedSections({
-                main: false,
-                planning: false,
-                assignment: false,
+                characteristics: false,
                 details: true
             });
         } else {
-            // New: expanded all
+            // Creation mode: others expanded, details collapsed
             setFormData({
                 id: '',
                 title: '',
@@ -102,17 +98,16 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                 sprintId: activeSprintId || (sprints.find(s => s.status === 'active')?.id) || (sprints.length > 0 ? sprints[0].id : '')
             });
             setExpandedSections({
-                main: true,
-                planning: true,
-                assignment: true,
-                details: true
+                characteristics: true,
+                details: false
             });
         }
     }, [story, epics, assignees, sprints, activeSprintId, isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData, formData.sprintId);
+        const { sprintId, ...storyData } = formData;
+        onSave(storyData, sprintId);
         onClose();
     };
 
@@ -146,10 +141,10 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                 </h3>
 
                 <form onSubmit={handleSubmit} className="overflow-y-auto pr-2 custom-scrollbar">
-                    {/* Main Info Section */}
+                    {/* Characteristics Section */}
                     <div className="mb-6">
-                        <SectionHeader id="main" title="Basic Information" />
-                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.main ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                        <SectionHeader id="characteristics" title="Characteristics" />
+                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.characteristics ? 'max-h-[600px] opacity-100 mt-4 pb-2' : 'max-h-0 opacity-0'}`}>
                             <div>
                                 <label className="block text-xs font-medium mb-1.5 text-gray-400">Title</label>
                                 <input
@@ -160,79 +155,69 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                                     required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Epic</label>
-                                <select
-                                    value={formData.epic}
-                                    onChange={(e) => setFormData({ ...formData, epic: e.target.value })}
-                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
-                                >
-                                    {epics.map(epic => (
-                                        <option key={epic.id} value={epic.name}>{epic.name}</option>
-                                    ))}
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium mb-1.5 text-gray-400">Epic</label>
+                                    <select
+                                        value={formData.epic}
+                                        onChange={(e) => setFormData({ ...formData, epic: e.target.value })}
+                                        className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all text-sm"
+                                    >
+                                        {epics.map(epic => (
+                                            <option key={epic.id} value={epic.name}>{epic.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium mb-1.5 text-gray-400">Sprint Target</label>
+                                    <select
+                                        value={formData.sprintId}
+                                        onChange={(e) => {
+                                            const newSprintId = e.target.value;
+                                            const updates: any = { sprintId: newSprintId };
+                                            if (newSprintId === 'backlog') {
+                                                updates.status = 'todo';
+                                            }
+                                            setFormData({ ...formData, ...updates });
+                                        }}
+                                        className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white font-semibold text-purple-300 focus:border-purple-500/50 outline-none transition-all text-sm"
+                                    >
+                                        {sprints.map(sprint => (
+                                            <option key={sprint.id} value={sprint.id}>
+                                                {sprint.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Planning Section */}
-                    <div className="mb-6">
-                        <SectionHeader id="planning" title="Planning & Estimation" />
-                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.planning ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-                            <div>
-                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Sprint Target</label>
-                                <select
-                                    value={formData.sprintId}
-                                    onChange={(e) => {
-                                        const newSprintId = e.target.value;
-                                        const updates: any = { sprintId: newSprintId };
-                                        if (newSprintId === 'backlog') {
-                                            updates.status = 'todo';
-                                        }
-                                        setFormData({ ...formData, ...updates });
-                                    }}
-                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white font-semibold text-purple-300 focus:border-purple-500/50 outline-none transition-all"
-                                >
-                                    {sprints.map(sprint => (
-                                        <option key={sprint.id} value={sprint.id}>
-                                            {sprint.name} {sprint.status === 'active' ? '(Active)' : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Story Points</label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="21"
-                                    value={formData.sp}
-                                    onChange={(e) => setFormData({ ...formData, sp: parseInt(e.target.value) })}
-                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Assignment & Status Section */}
-                    <div className="mb-6">
-                        <SectionHeader id="assignment" title="Assignment & Status" />
-                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.assignment ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-                            <div>
-                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Assignee</label>
-                                <select
-                                    value={formData.assignee}
-                                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
-                                >
-                                    {assignees.map(assignee => (
-                                        <option key={assignee.id} value={assignee.name}>{assignee.name}</option>
-                                    ))}
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium mb-1.5 text-gray-400">Assignee</label>
+                                    <select
+                                        value={formData.assignee}
+                                        onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                                        className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all text-sm"
+                                    >
+                                        {assignees.map(assignee => (
+                                            <option key={assignee.id} value={assignee.name}>{assignee.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium mb-1.5 text-gray-400">Story Points</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="21"
+                                        value={formData.sp}
+                                        onChange={(e) => setFormData({ ...formData, sp: parseInt(e.target.value) })}
+                                        className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all text-sm"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className={`block text-xs font-medium mb-1.5 ${formData.sprintId === 'backlog' ? 'text-gray-600' : 'text-gray-400'}`}>
-                                    Status {formData.sprintId === 'backlog' && <span className="text-[10px] text-purple-400 font-normal ml-2">(Mandatory To-Do for Backlog)</span>}
+                                    Status {formData.sprintId === 'backlog' && <span className="text-[10px] text-purple-400 font-normal ml-2">(To-Do for Backlog)</span>}
                                 </label>
                                 <select
                                     value={formData.status}
@@ -250,7 +235,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({
 
                     {/* Details Section */}
                     <div className="mb-8">
-                        <SectionHeader id="details" title="Implementation Details" />
+                        <SectionHeader id="details" title="Details" />
                         <div className={`overflow-hidden transition-all duration-300 ${expandedSections.details ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                             <textarea
                                 value={formData.details}
