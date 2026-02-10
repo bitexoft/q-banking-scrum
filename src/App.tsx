@@ -91,6 +91,12 @@ function App() {
       const assignees = await assigneesResponse.json();
 
       setProjectData({ sprints, epics, assignees });
+
+      // Automatically select the active sprint on load
+      const activeIndex = sprints.findIndex((s: Sprint) => s.status === 'active');
+      if (activeIndex !== -1) {
+        setSelectedSprint(activeIndex);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Error loading data. Make sure the API server is running.');

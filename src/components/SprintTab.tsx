@@ -31,8 +31,8 @@ export const SprintTab: React.FC<SprintTabProps> = ({ sprint, isActive, onClick,
         <button
             onClick={onClick}
             className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all relative ${isActive
-                ? (sprint.id === 'discovery' ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/50 scale-105' : 'bg-purple-600 text-white shadow-lg shadow-purple-500/50 scale-105')
-                : (sprint.id === 'discovery' ? 'bg-orange-600/10 text-orange-300 hover:bg-orange-600/20 border-orange-500/20 border' : 'bg-white/10 text-purple-300 hover:bg-white/20')
+                ? (sprint.id === 'discovery' ? 'bg-orange-500/40 text-orange-100 shadow-lg shadow-orange-500/30 scale-105 border border-orange-500/30' : 'bg-purple-600 text-white shadow-lg shadow-purple-500/50 scale-105')
+                : (sprint.id === 'discovery' ? 'bg-orange-600/5 text-orange-300/60 hover:bg-orange-600/10 border-orange-500/10 border' : 'bg-white/10 text-purple-300 hover:bg-white/20')
                 }`}
         >
             <div className={`text-sm flex items-center gap-2 justify-center ${sprint.status === 'active' ? 'text-green-400 animate-pulse font-bold' : ''}`}>
