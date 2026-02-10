@@ -26,7 +26,7 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-black/20 rounded-lg p-4 border ${borderColor} transition-all ${isOver ? 'ring-2 ring-purple-500 bg-purple-500/10' : ''
+            className={`bg-black/20 rounded-lg p-4 border ${borderColor} transition-all duration-200 ${isOver ? 'ring-2 ring-purple-500 bg-purple-500/15 border-purple-500/50 scale-[1.01] shadow-[0_0_20px_rgba(168,85,247,0.15)]' : ''
                 }`}
         >
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">

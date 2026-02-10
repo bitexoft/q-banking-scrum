@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DndContext, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { CircleIcon, PlayIcon, CheckIcon, TrendingIcon, ZapIcon, CalendarIcon, BlockedIcon, ChevronIcon } from './components/Icons';
 import { StatCard } from './components/StatCard';
@@ -7,6 +7,7 @@ import { EpicCard } from './components/EpicCard';
 import { SprintSelector } from './components/SprintSelector';
 import { DraggableStoryCard } from './components/DraggableStoryCard';
 import { DroppableColumn } from './components/DroppableColumn';
+import { StoryCard } from './components/StoryCard';
 import { StoryModal } from './components/StoryModal';
 import { EpicModal } from './components/EpicModal';
 import { SprintModal } from './components/SprintModal';
@@ -62,6 +63,7 @@ function App() {
   const [isEpicsExpanded, setIsEpicsExpanded] = useState(false);
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
   const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   // Load data only when authenticated
   useEffect(() => {
@@ -142,8 +144,13 @@ function App() {
     return currentSprint.stories;
   }, [currentSprint]);
 
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
 
     if (!over || currentSprint.id === 'backlog') return;
 
@@ -693,7 +700,12 @@ function App() {
             </div>
 
             {/* Kanban Board or Backlog View */}
-            <DndContext sensors={sensors} onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
+            <DndContext
+              sensors={sensors}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              collisionDetection={closestCorners}
+            >
               {currentSprint.id === 'backlog' ? (
                 <div className="max-w-2xl mx-auto">
                   <DroppableColumn
@@ -809,6 +821,28 @@ function App() {
                   </DroppableColumn>
                 </div>
               )}
+
+              <DragOverlay adjustScale={true}>
+                {activeId ? (
+                  <div className="shadow-2xl opacity-90 scale-105 transition-transform">
+                    {(() => {
+                      const activeStory = projectData.sprints
+                        .flatMap(s => s.stories)
+                        .find(s => s.id === activeId);
+                      return activeStory ? (
+                        <div className="w-[350px]">
+                          <StoryCard
+                            story={activeStory}
+                            epics={projectData.epics}
+                            onEdit={() => { }}
+                            onDelete={() => { }}
+                          />
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                ) : null}
+              </DragOverlay>
             </DndContext>
           </div>
         </div>

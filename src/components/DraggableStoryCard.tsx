@@ -51,10 +51,11 @@ export const DraggableStoryCard: React.FC<DraggableStoryCardProps> = ({
     } = useSortable({ id: story.id });
 
     const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        cursor: 'grab',
+        transform: CSS.Translate.toString(transform),
+        transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
+        opacity: isDragging ? 0.3 : 1,
+        cursor: isDragging ? 'grabbing' : 'grab',
+        zIndex: isDragging ? 50 : 'auto',
     };
 
 
