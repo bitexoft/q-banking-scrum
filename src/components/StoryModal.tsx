@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronIcon } from './Icons';
 
 interface Epic {
     id: string;
@@ -62,14 +63,15 @@ export const StoryModal: React.FC<StoryModalProps> = ({
         sprintId: ''
     });
 
-    const [showDetails, setShowDetails] = useState(false);
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+        main: true,
+        planning: true,
+        assignment: true,
+        details: true
+    });
 
     useEffect(() => {
         if (story) {
-            // Finding which sprint this story currently belongs to is handled by App.tsx passing it down 
-            // but for simplicity here we assume the story doesn't know its sprint ID, 
-            // so we rely on App.tsx to provide the current context if needed.
-            // Actually, we should probably pass the current sprint ID to the modal.
             setFormData({
                 id: story.id,
                 title: story.title,
@@ -80,9 +82,15 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                 details: story.details || '',
                 sprintId: currentSprintId || activeSprintId || ''
             });
-            setShowDetails(!!story.details);
+            // Editing: collapse all except details
+            setExpandedSections({
+                main: false,
+                planning: false,
+                assignment: false,
+                details: true
+            });
         } else {
-            // Reset form for new story
+            // New: expanded all
             setFormData({
                 id: '',
                 title: '',
@@ -93,9 +101,14 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                 details: '',
                 sprintId: activeSprintId || (sprints.find(s => s.status === 'active')?.id) || (sprints.length > 0 ? sprints[0].id : '')
             });
-            setShowDetails(false);
+            setExpandedSections({
+                main: true,
+                planning: true,
+                assignment: true,
+                details: true
+            });
         }
-    }, [story, epics, assignees, sprints, activeSprintId]);
+    }, [story, epics, assignees, sprints, activeSprintId, isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -103,135 +116,162 @@ export const StoryModal: React.FC<StoryModalProps> = ({
         onClose();
     };
 
+    const toggleSection = (section: string) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
+    };
+
     if (!isOpen) return null;
 
+    const SectionHeader = ({ id, title }: { id: string; title: string }) => (
+        <button
+            type="button"
+            onClick={() => toggleSection(id)}
+            className="w-full flex items-center justify-between py-2 mb-2 text-purple-400 hover:text-purple-300 transition-colors border-b border-purple-500/10"
+        >
+            <span className="text-sm font-semibold uppercase tracking-wider">{title}</span>
+            <div className={`transition-transform duration-200 ${expandedSections[id] ? 'rotate-180' : ''}`}>
+                <ChevronIcon />
+            </div>
+        </button>
+    );
+
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full border border-purple-500/30">
-                <h3 className="text-xl font-bold mb-4 text-purple-400">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-900/90 rounded-2xl p-6 max-w-md w-full border border-purple-500/30 shadow-2xl flex flex-col max-h-[90vh]">
+                <h3 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                     {story ? 'Edit Story' : 'Create New Story'}
                 </h3>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Title</label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Epic</label>
-                        <select
-                            value={formData.epic}
-                            onChange={(e) => setFormData({ ...formData, epic: e.target.value })}
-                            className="w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white"
-                        >
-                            {epics.map(epic => (
-                                <option key={epic.id} value={epic.name}>{epic.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Sprint Target</label>
-                        <select
-                            value={formData.sprintId}
-                            onChange={(e) => {
-                                const newSprintId = e.target.value;
-                                const updates: any = { sprintId: newSprintId };
-                                if (['backlog', 'discovery'].includes(newSprintId)) {
-                                    updates.status = 'todo';
-                                }
-                                setFormData({ ...formData, ...updates });
-                            }}
-                            className="w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white font-semibold text-purple-300"
-                        >
-                            {sprints.map(sprint => (
-                                <option key={sprint.id} value={sprint.id}>
-                                    {sprint.name} {sprint.status === 'active' ? '(Active)' : ''}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Assignee</label>
-                        <select
-                            value={formData.assignee}
-                            onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                            className="w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white"
-                        >
-                            {assignees.map(assignee => (
-                                <option key={assignee.id} value={assignee.name}>{assignee.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Story Points</label>
-                        <input
-                            type="number"
-                            min="1"
-                            max="21"
-                            value={formData.sp}
-                            onChange={(e) => setFormData({ ...formData, sp: parseInt(e.target.value) })}
-                            className="w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white"
-                        />
-                    </div>
-
-
-
+                <form onSubmit={handleSubmit} className="overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Main Info Section */}
                     <div className="mb-6">
-                        <label className={`block text-sm font-medium mb-2 ${['backlog', 'discovery'].includes(formData.sprintId) ? 'text-gray-500' : ''}`}>
-                            Status {['backlog', 'discovery'].includes(formData.sprintId) && <span className="text-[10px] text-purple-400 font-normal ml-2">(Mandatory To-Do for {formData.sprintId === 'discovery' ? 'Discovery' : 'Backlog'})</span>}
-                        </label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                            disabled={['backlog', 'discovery'].includes(formData.sprintId)}
-                            className={`w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white ${['backlog', 'discovery'].includes(formData.sprintId) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            {statuses.map(s => (
-                                <option key={s} value={s}>{s.replace('-', ' ')}</option>
-                            ))}
-                        </select>
+                        <SectionHeader id="main" title="Basic Information" />
+                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.main ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                            <div>
+                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Title</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Epic</label>
+                                <select
+                                    value={formData.epic}
+                                    onChange={(e) => setFormData({ ...formData, epic: e.target.value })}
+                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
+                                >
+                                    {epics.map(epic => (
+                                        <option key={epic.id} value={epic.name}>{epic.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
+                    {/* Planning Section */}
                     <div className="mb-6">
-                        <button
-                            type="button"
-                            onClick={() => setShowDetails(!showDetails)}
-                            className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1"
-                        >
-                            {showDetails ? '− Hide Details' : '+ Add Details'}
-                        </button>
+                        <SectionHeader id="planning" title="Planning & Estimation" />
+                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.planning ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                            <div>
+                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Sprint Target</label>
+                                <select
+                                    value={formData.sprintId}
+                                    onChange={(e) => {
+                                        const newSprintId = e.target.value;
+                                        const updates: any = { sprintId: newSprintId };
+                                        if (newSprintId === 'backlog') {
+                                            updates.status = 'todo';
+                                        }
+                                        setFormData({ ...formData, ...updates });
+                                    }}
+                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white font-semibold text-purple-300 focus:border-purple-500/50 outline-none transition-all"
+                                >
+                                    {sprints.map(sprint => (
+                                        <option key={sprint.id} value={sprint.id}>
+                                            {sprint.name} {sprint.status === 'active' ? '(Active)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Story Points</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="21"
+                                    value={formData.sp}
+                                    onChange={(e) => setFormData({ ...formData, sp: parseInt(e.target.value) })}
+                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
-                        {showDetails && (
+                    {/* Assignment & Status Section */}
+                    <div className="mb-6">
+                        <SectionHeader id="assignment" title="Assignment & Status" />
+                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${expandedSections.assignment ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                            <div>
+                                <label className="block text-xs font-medium mb-1.5 text-gray-400">Assignee</label>
+                                <select
+                                    value={formData.assignee}
+                                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                                    className="w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all"
+                                >
+                                    {assignees.map(assignee => (
+                                        <option key={assignee.id} value={assignee.name}>{assignee.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className={`block text-xs font-medium mb-1.5 ${formData.sprintId === 'backlog' ? 'text-gray-600' : 'text-gray-400'}`}>
+                                    Status {formData.sprintId === 'backlog' && <span className="text-[10px] text-purple-400 font-normal ml-2">(Mandatory To-Do for Backlog)</span>}
+                                </label>
+                                <select
+                                    value={formData.status}
+                                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                                    disabled={formData.sprintId === 'backlog'}
+                                    className={`w-full px-4 py-2 bg-black/40 border border-purple-500/20 rounded-xl text-white focus:border-purple-500/50 outline-none transition-all ${formData.sprintId === 'backlog' ? 'opacity-50 cursor-not-allowed border-dashed' : ''}`}
+                                >
+                                    {statuses.map(s => (
+                                        <option key={s} value={s}>{s.replace('-', ' ')}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Details Section */}
+                    <div className="mb-8">
+                        <SectionHeader id="details" title="Implementation Details" />
+                        <div className={`overflow-hidden transition-all duration-300 ${expandedSections.details ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                             <textarea
                                 value={formData.details}
                                 onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                                 placeholder="Enter story details, acceptance criteria, etc..."
-                                className="w-full mt-2 px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white h-24 resize-none text-sm"
+                                className="w-full px-4 py-3 bg-black/40 border border-purple-500/20 rounded-xl text-white h-40 resize-none text-sm focus:border-purple-500/50 outline-none transition-all custom-scrollbar"
                             />
-                        )}
+                        </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-4 mt-2 sticky bottom-0 bg-slate-900/90 pt-4 pb-2">
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-500/20 active:scale-95"
                         >
-                            {story ? 'Save' : 'Create'}
+                            {story ? 'Save Changes' : 'Create Story'}
                         </button>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                            className="flex-1 px-6 py-3 bg-white/5 text-gray-300 rounded-xl font-bold hover:bg-white/10 transition-all active:scale-95"
                         >
                             Cancel
                         </button>

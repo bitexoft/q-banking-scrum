@@ -733,7 +733,7 @@ function App() {
                         filteredStories.map(story => (
                           <DraggableStoryCard
                             key={story.id}
-                            story={{ ...story, status: 'todo' }}
+                            story={currentSprint.id === 'discovery' ? story : { ...story, status: 'todo' }}
                             epics={projectData.epics}
                             onEdit={openEditModal}
                             onDelete={handleDeleteStory}
