@@ -144,7 +144,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({
                             onChange={(e) => {
                                 const newSprintId = e.target.value;
                                 const updates: any = { sprintId: newSprintId };
-                                if (newSprintId === 'backlog') {
+                                if (['backlog', 'discovery'].includes(newSprintId)) {
                                     updates.status = 'todo';
                                 }
                                 setFormData({ ...formData, ...updates });
@@ -187,14 +187,14 @@ export const StoryModal: React.FC<StoryModalProps> = ({
 
 
                     <div className="mb-6">
-                        <label className={`block text-sm font-medium mb-2 ${formData.sprintId === 'backlog' ? 'text-gray-500' : ''}`}>
-                            Status {formData.sprintId === 'backlog' && <span className="text-[10px] text-purple-400 font-normal ml-2">(Mandatory To-Do for Backlog)</span>}
+                        <label className={`block text-sm font-medium mb-2 ${['backlog', 'discovery'].includes(formData.sprintId) ? 'text-gray-500' : ''}`}>
+                            Status {['backlog', 'discovery'].includes(formData.sprintId) && <span className="text-[10px] text-purple-400 font-normal ml-2">(Mandatory To-Do for {formData.sprintId === 'discovery' ? 'Discovery' : 'Backlog'})</span>}
                         </label>
                         <select
                             value={formData.status}
                             onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                            disabled={formData.sprintId === 'backlog'}
-                            className={`w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white ${formData.sprintId === 'backlog' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={['backlog', 'discovery'].includes(formData.sprintId)}
+                            className={`w-full px-3 py-2 bg-black/30 border border-purple-500/30 rounded-lg text-white ${['backlog', 'discovery'].includes(formData.sprintId) ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {statuses.map(s => (
                                 <option key={s} value={s}>{s.replace('-', ' ')}</option>

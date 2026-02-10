@@ -152,7 +152,7 @@ function App() {
     const { active, over } = event;
     setActiveId(null);
 
-    if (!over || currentSprint.id === 'backlog') return;
+    if (!over || ['backlog', 'discovery'].includes(currentSprint.id)) return;
 
     const storyId = active.id as string;
     const overId = over.id as string;
@@ -664,7 +664,7 @@ function App() {
 
 
         {/* Stories List */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-purple-500/20">
+        <div className={`rounded-lg overflow-hidden border transition-colors duration-500 ${currentSprint.id === 'discovery' ? 'bg-orange-950/20 border-orange-500/30 shadow-[0_0_40px_rgba(249,115,22,0.05)]' : 'bg-white/10 border-purple-500/20 backdrop-blur-sm'}`}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -684,7 +684,7 @@ function App() {
                 )}
               </h2>
               <div className="flex gap-2">
-                {(currentSprint as Sprint).status !== 'active' && currentSprint.id && currentSprint.id !== 'backlog' && (
+                {(currentSprint as Sprint).status !== 'active' && currentSprint.id && !['backlog', 'discovery'].includes(currentSprint.id) && (
                   <button
                     onClick={() => handleActivateSprint(currentSprint.id)}
                     className="px-3 py-1.5 bg-green-600/20 text-green-300 rounded-lg text-sm font-semibold hover:bg-green-600/40 transition-colors border border-green-500/30"
@@ -708,32 +708,34 @@ function App() {
               onDragEnd={handleDragEnd}
               collisionDetection={closestCorners}
             >
-              {currentSprint.id === 'backlog' ? (
+              {['backlog', 'discovery'].includes(currentSprint.id) ? (
                 <div className="max-w-2xl mx-auto">
-                  <DroppableColumn
-                    id="todo"
-                    title="User stories"
-                    icon={<CircleIcon />}
-                    count={filteredStories.length}
-                    borderColor="border-purple-500/30"
-                    items={filteredStories.map(s => s.id)}
-                  >
-                    {filteredStories.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 text-sm">
-                        No stories in backlog
-                      </div>
-                    ) : (
-                      filteredStories.map(story => (
-                        <DraggableStoryCard
-                          key={story.id}
-                          story={{ ...story, status: 'todo' }}
-                          epics={projectData.epics}
-                          onEdit={openEditModal}
-                          onDelete={handleDeleteStory}
-                        />
-                      ))
-                    )}
-                  </DroppableColumn>
+                  <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    <DroppableColumn
+                      id="todo"
+                      title={currentSprint.id === 'discovery' ? 'Discovery items' : 'User stories'}
+                      icon={<CircleIcon />}
+                      count={filteredStories.length}
+                      borderColor="border-purple-500/30"
+                      items={filteredStories.map(s => s.id)}
+                    >
+                      {filteredStories.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 text-sm">
+                          {currentSprint.id === 'discovery' ? 'No items in discovery' : 'No stories in backlog'}
+                        </div>
+                      ) : (
+                        filteredStories.map(story => (
+                          <DraggableStoryCard
+                            key={story.id}
+                            story={{ ...story, status: 'todo' }}
+                            epics={projectData.epics}
+                            onEdit={openEditModal}
+                            onDelete={handleDeleteStory}
+                          />
+                        ))
+                      )}
+                    </DroppableColumn>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
